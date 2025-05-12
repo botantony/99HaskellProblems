@@ -1,3 +1,5 @@
+import System.Random.Stateful
+
 -- 1. Implement `last` function
 myLast :: [a] -> Maybe a
 myLast []     = Nothing
@@ -162,3 +164,38 @@ range :: Int -> Int -> [Int]
 range i j
     | i < j     = i : range (i + 1) j
     | otherwise = [i]
+
+-- Common shuffle function
+shuffle :: [a] -> IO [a]
+shuffle [] = return []
+shuffle xs = do
+    i   <- uniformRM (0, length xs - 1) globalStdGen
+    let (left, rest) = splitAt i xs
+    case rest of
+        []     -> return []
+        (x:rs) -> do
+            shuffleRest <- shuffle (left ++ rs)
+            return (x:shuffleRest)
+
+-- 23. Random selection
+randomSelect :: [a] -> Int -> IO [a]
+randomSelect [] _ = return []
+randomSelect xs n
+    | length xs < n = return []
+    | otherwise     = take n <$> shuffle xs
+
+-- 24. Lotto
+lotto :: Int -> Int -> IO [Int]
+lotto n m = randomSelect [1..m] n
+
+-- 25. Premutation
+premutation :: [a] -> IO [a]
+premutation = shuffle
+
+-- 26. Combinations
+extract :: Int -> [a] -> [[a]]
+extract n xs
+    | n <= 0    = [[]]
+    | otherwise = case xs of
+        []       -> []
+        (x:rest) -> map (\y -> x : y) (extract (n - 1) rest) ++ extract n rest
